@@ -1,4 +1,4 @@
-# Mange letsencrypt certificates for Nginx
+# Manage letsencrypt certificates for Nginx
 
 
 ## Setup
