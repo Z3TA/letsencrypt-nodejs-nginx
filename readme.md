@@ -3,7 +3,7 @@
 
 ## Setup
 
-Get the files: 
+Get the script: 
 ```git clone git@github.com:Z3TA/letsencrypt-nodejs-nginx.git```
 
 Install dependencies:
@@ -21,12 +21,16 @@ location /.well-known/acme-challenge/ {
 ```
 Change the port to whatever you want.
 
+The script assumes your Nginx domain config files are located at in /etc/nginx/sites-enabled/
+
+
 Edit the file letsencrypt.js:
 
 * If you changed the port nr, update it
 * Replace e-mail address with your own
 * Set the path to where certificates and keys will be stored
 * Set the ACME_URL to the test-url (important!!!)
+
 
 #### Optional
 
