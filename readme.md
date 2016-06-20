@@ -21,7 +21,7 @@ location /.well-known/acme-challenge/ {
 ```
 Change the port to whatever you want.
 
-The script assumes your Nginx domain config files are located at in /etc/nginx/sites-enabled/
+The script assumes your Nginx domain config files are located in /etc/nginx/sites-enabled/
 
 
 Edit the file letsencrypt.js:
@@ -65,6 +65,57 @@ crontab -u letsencrypt -e
 Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
 
 
+## Nginx config gues
+
+Example nginx config file:
+```
+server {
+  listen 80;
+  #listen 443 ssl;
+
+  #ssl_certificate      /tank/ssl/cert/www.webtigerteam.com.crt;
+  #ssl_certificate_key  /tank/ssl/keys/www.webtigerteam.com.key;
+
+  server_name www.webtigerteam.com;
+
+  server_tokens off;
+
+  root /tank/www/webtigerteam.com/;
+  index index.html index.htm;
+
+  location / {
+    charset	utf-8;
+    try_files $uri $uri/ =404;
+  }
+
+  # Lets encrypt challange
+  location /.well-known/acme-challenge/ {
+    proxy_pass http://127.0.0.1:8094;
+    proxy_set_header Host $http_host;
+    proxy_set_header        X-Real-IP       $remote_addr;
+  }
+
+}
+```
+
+Copy the file to /etc/nginx/sites-available/
+Then link it to /etc/nginx/sites-enabled/
+```sudo ln -s /etc/nginx/sites-available/www.webtigerteam.com.nginx /etc/nginx/sites-enabled/www.webtigerteam.com```
+
+And reload Nginx: ```sudo service nginx reload```
+
+If there is any problems, run: ```sudo nginx -t```
+
+
+
+Once you have the certificate in place, uncomment/add:
+```
+listen 443 ssl;
+ssl_certificate      /tank/ssl/cert/www.webtigerteam.com.crt;
+ssl_certificate_key  /tank/ssl/keys/www.webtigerteam.com.key;
+```
+Copy the file to /etc/nginx/sites-available/: ```sudo cp ~/wwwcnf/www.webtigerteam.com.nginx /etc/nginx/sites-available/```
+And reload nginx again: ```sudo service nginx reload```
 
 
  
