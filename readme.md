@@ -99,7 +99,7 @@ server {
 ```
 
 Copy the file to /etc/nginx/sites-available/
-Then link it to /etc/nginx/sites-enabled/
+Then link it to /etc/nginx/sites-enabled/yourdomain.com
 ```
 sudo ln -s /etc/nginx/sites-available/www.webtigerteam.com.nginx /etc/nginx/sites-enabled/www.webtigerteam.com
 ```
