@@ -65,7 +65,7 @@ crontab -u letsencrypt -e
 Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
 
 
-## Nginx config gues
+## Nginx config guide
 
 Example nginx config file:
 ```
@@ -100,15 +100,17 @@ server {
 
 Copy the file to /etc/nginx/sites-available/
 Then link it to /etc/nginx/sites-enabled/
-```sudo ln -s /etc/nginx/sites-available/www.webtigerteam.com.nginx /etc/nginx/sites-enabled/www.webtigerteam.com```
+```
+sudo ln -s /etc/nginx/sites-available/www.webtigerteam.com.nginx /etc/nginx/sites-enabled/www.webtigerteam.com
+```
 
 And reload Nginx: ```sudo service nginx reload```
 
-If there is any problems, run: ```sudo nginx -t```
+If there's an error run: ```sudo nginx -t```
 
 
 
-Once you have the certificate in place, uncomment/add:
+Once the certificate is in place, uncomment/add:
 ```
 listen 443 ssl;
 ssl_certificate      /tank/ssl/cert/www.webtigerteam.com.crt;
