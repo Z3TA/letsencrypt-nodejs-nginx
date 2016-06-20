@@ -126,7 +126,7 @@ And reload nginx again: ```sudo service nginx reload```
 * Checks if /etc/nginx/sites-enabled/www.yourdomain.com has the Letsencrypt challange proxy_pass snippet.
 * Checks if the certificate file exists and if it's about to expire, then requests a new certificate
 
-In order to prove that you own yourdomain.com, letsencrypt makes a request to yourdomain.com/.well-known/acme-challenge/*
+To prove that you own yourdomain.com, letsencrypt makes a request to yourdomain.com/.well-known/acme-challenge/*
 So the script starts a HTTP server witch Nginx proxy to.
 
 The HTTPS certificates are valid for 90 days, so it's important that you setup crontab or someting else to run the script at regular intervals.
