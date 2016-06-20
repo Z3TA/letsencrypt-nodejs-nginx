@@ -1,0 +1,28 @@
+{
+  "name": "letsencrypt",
+  "version": "1.0.0",
+  "description": "NodeJS script to manage letsencrypt certificates with Nginx",
+  "main": "letsencrypt.js",
+  "dependencies": {
+    "letiny-core": "^1.0.5",
+    "ssl-utils": "^0.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Z3TA/letsencrypt-nodejs-nginx.git"
+  },
+  "keywords": [
+    "letsencrypt",
+    "nginx"
+  ],
+  "author": "zeta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Z3TA/letsencrypt-nodejs-nginx/issues"
+  },
+  "homepage": "https://github.com/Z3TA/letsencrypt-nodejs-nginx#readme"
+}

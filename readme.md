@@ -3,7 +3,11 @@
 
 ## Setup
 
-Get the files: git clone git@github.com:Z3TA/letsencrypt-nodejs-nginx.git
+Get the files: 
+```git clone git@github.com:Z3TA/letsencrypt-nodejs-nginx.git```
+
+Install dependencies:
+```npm install```
 
 Update your domain's nginx config file:
 
@@ -17,7 +21,7 @@ location /.well-known/acme-challenge/ {
 ```
 Change the port to whatever you want.
 
-Edit the file letsencrypt.js
+Edit the file letsencrypt.js:
 
 * If you changed the port nr, update it
 * Replace e-mail address with your own
@@ -42,6 +46,9 @@ Usage:
 
 Check all domains to see if they need to renew:
 ```sudo -u letsencrypt node letsencrypt.js```
+
+
+Once everything works, change the ACME url to the production url.
 
 
 ### Add to crontab
