@@ -41,7 +41,8 @@ sudo chmod 755 /tank/ssl/cert/
 sudo chmod 750 /tank/ssl/keys/
 ```
 
-Usage:
+## Usage
+
 ```sudo -u letsencrypt node letsencrypt.js yourdomain.com```
 
 Check all domains to see if they need to renew:
