@@ -280,6 +280,11 @@ function main() {
 		// Check existing domains if they need renewal
 		fs.readdir(CERT_BASE_PATH, function listCerts(err, files) {
 			
+			if(files == undefined) {
+				console.log("Did not find any (certiface) files in " + CERT_BASE_PATH);
+				process.exit();
+			}
+			
 			var leftToCheck = files.length;
 			var errors = [];
 			
