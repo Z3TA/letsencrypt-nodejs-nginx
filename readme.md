@@ -6,6 +6,12 @@
 Get the script: 
 ```git clone git@github.com:Z3TA/letsencrypt-nodejs-nginx.git```
 
+(tip optional) Create a local git branch to make it easier to merge updates to the script:
+```
+git branch my-local-settings
+git checkout my-local-settings
+```
+
 Install dependencies:
 ```npm install```
 
@@ -63,6 +69,9 @@ crontab -u letsencrypt -e
 ```45 7,19 * * *       node /tank/nodejs/letsencrypt.js```
 
 Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
+
+Add the -silent option if you do not want to get "spammed"
+```33 6,18 * * *       node /tank/nodejs/letsencrypt.js -silent```
 
 
 ## Nginx config guide
