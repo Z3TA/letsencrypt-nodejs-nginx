@@ -48,8 +48,7 @@ var KEYS_BASE_PATH = "/tank/ssl/keys/"; // path to crypto keys! (used by nginx)
 	sudo chmod 755 /tank/ssl/cert/
 	sudo chmod 750 /tank/ssl/keys/
 	
-	
-	Do I need to add nginx to letsencrypt group? Nope
+	Do I need to add nginx to letsencrypt group?
 	
 	Usage: sudo -u letsencrypt node letsencrypt.js yourdomain.com
 	
@@ -61,15 +60,15 @@ var KEYS_BASE_PATH = "/tank/ssl/keys/"; // path to crypto keys! (used by nginx)
 	
 	 45 7,19 * * *       node /tank/nodejs/letsencrypt.js
 	
-	Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
+	Change the first value (minute 45), and hours 7,19 to a "random" value to somewhat ease the load on the ACME servers
 	
 */
 
 var MAX_EXPIRE_HOURS = 120; // Renew the certificate if it expires in less then 
 
-var ADMIN_EMAIL = "change.to.your@mail"; // Change this to your own e-mail address!
+var ADMIN_EMAIL = "zeta@zetafiles.org"; // Change this to your own e-mail address!
 
-var ACME_URL = "https://acme-staging.api.letsencrypt.org/directory"; // Change this to production after testing! 
+var ACME_URL = "https://acme-v01.api.letsencrypt.org/directory"; // Change this to production after testing! 
 /*
 	testing url= https://acme-staging.api.letsencrypt.org/directory
 	
