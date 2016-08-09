@@ -21,7 +21,7 @@
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 	SOFTWARE.
 	
-	*/
+*/
 
 "use strict";
 
@@ -59,7 +59,7 @@ var KEYS_BASE_PATH = "/tank/ssl/keys/"; // path to crypto keys! (used by nginx)
 	----------------------
 	crontab -u letsencrypt -e
 	
-	 45 7,19 * * *       node /tank/nodejs/letsencrypt.js
+	45 7,19 * * *       node /tank/nodejs/letsencrypt.js
 	
 	Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
 	
@@ -85,25 +85,35 @@ var ACME_URL = "https://acme-staging.api.letsencrypt.org/directory"; // Change t
 */
 
 
+// Option flags
+var revoke = false; // This is not implemented, but contributions are welcome! (call revoke-cert)
+var logall = true;  // If set to false, only writes to console log if it's "imporant""
+var checkDomain;    // The domain to check
+
+for(var i=2; i<process.argv.length; i++) {
+	if(process.argv[i].substr(0, 1) != "-") checkDomain = process.argv[i].trim()
+	else if(process.argv[i] == "-silent") logall = false
+	else if(process.argv[i] == "-revoke") revoke = true // Not yet implemented
+}
 
 
 // Functions to manage ACME challenges
 var challengeCache = {};
 var challengeStore = {
 	set: function setChallenge(hostname, key, value, cb) {
-		console.log("challengeStore.set: hostname=" + hostname + " key=" + key + " value=" + value);
+		log("challengeStore.set: hostname=" + hostname + " key=" + key + " value=" + value);
 		challengeCache[key] = value;
 		
 		cb(null);
 		
 	}
 	, get: function getChallengeAnswer(hostname, key, cb) {
-		console.log("challengeStore.get: hostname=" + hostname + " key=" + key);
+		log("challengeStore.get: hostname=" + hostname + " key=" + key);
 		
 		cb(null, challengeCache[key]);
 	}
 	, remove: function removeChallenge(hostname, key, cb) {
-		console.log("challengeStore.remove: hostname=" + hostname + " key=" + key);
+		log("challengeStore.remove: hostname=" + hostname + " key=" + key);
 		
 		delete challengeCache[key];
 		
@@ -115,7 +125,7 @@ var challengeStore = {
 var certCache = {};
 var certStore = {
 	set: function storeCertificate(hostname, certs, cb) {
-		console.log("certStore.set: hostname=" + hostname + " certs=" + certs);
+		log("certStore.set: hostname=" + hostname + " certs=" + certs);
 		
 		if(certs == undefined) {
 			console.warn("certStore: certs is undefined!")
@@ -131,36 +141,36 @@ var certStore = {
 			/*
 				fs.writeFile("ca.pem", certs["ca"], function(err) {
 				if (err) throw err;
-				console.log("ca.pem created");
+				log("ca.pem created");
 				if(++counter==countUntil) cb(null);
 				});
 				fs.writeFile("cert.pem", certs["cert"], function(err) {
 				if (err) throw err;
-				console.log("cert.pem created");
+				log("cert.pem created");
 				if(++counter==countUntil) cb(null);
 				});
 			*/
 			
 			fs.writeFile(KEYS_BASE_PATH + hostname + ".key", certs["key"], function(err) {
 				if (err) throw err;
-				console.log(hostname + ".key created");
+				log(hostname + ".key created");
 				if(++counter==countUntil) cb(null);
 			});
 			// Nginx needs both the cert and "ca" concatenated
 			fs.writeFile(CERT_BASE_PATH + hostname + ".crt", certs["cert"] + "\n" + certs["ca"], function(err) {
 				if (err) throw err;
-				console.log(hostname + ".crt created");
+				log(hostname + ".crt created");
 				if(++counter==countUntil) cb(null);
 			});
 			
 		}
 	}
 	, get: function retrieveCert(hostname, cb) {
-		console.log("certStore.get: hostname=" + hostname);
+		log("certStore.get: hostname=" + hostname);
 		cb(null, certCache[hostname]);
 	}
 	, remove: function deleteCert(hostname, cb) {
-		console.log("certStore.remove: hostname=" + hostname);
+		log("certStore.remove: hostname=" + hostname);
 		delete certCache[hostname];
 		cb(null);
 	}
@@ -177,9 +187,9 @@ try {
 }
 catch(err) {
 	if(err.code=="ENOENT") {
-		console.log(accountKeyPath + " does not exist. Create it using:\nsudo sh -c 'openssl genrsa 4096 > " + accountKeyPath + "' && sudo chown letsencrypt:letsencrypt " + accountKeyPath + " && sudo chmod 700 " + accountKeyPath + "\n");
+		log(accountKeyPath + " does not exist. Create it using:\nsudo sh -c 'openssl genrsa 4096 > " + accountKeyPath + "' && sudo chown letsencrypt:letsencrypt " + accountKeyPath + " && sudo chmod 700 " + accountKeyPath + "\n", true);
 		process.exit();
-		}
+	}
 	else throw err;
 }
 
@@ -196,7 +206,7 @@ function acmeResponder(req, res) {
 	var addr = req.url;
 	var ip = req.headers["x-real-ip"] ? req.headers["x-real-ip"] : req.connection.remoteAddress;
 	
-	console.log("Request to " + addr + " from " + ip + "");
+	log("Request to " + addr + " from " + ip + "");
 	
 	if (0 !== req.url.indexOf(LeCore.acmeChallengePrefix)) {
 		res.end('Hello World!');
@@ -220,12 +230,12 @@ var accountJson = KEYS_BASE_PATH + "letsencrypt-account.json";
 // Get the ACME URL's used to make commands like new-cert, new-reg and revoke-cert
 var ACME_URLS;
 
-console.log("Getting urls");
+log("Getting urls");
 LeCore.getAcmeUrls(ACME_URL, function (err, urls) {
 	
 	if(err) throw err;
 	
-	console.log("Got urls: " + urls);
+	log("Got urls: " + urls);
 	ACME_URLS = urls;
 	
 	// Check if letsencrypt-account.json exist, if not, we have probably not registered. Remove this file (and account.key) when switching from staging to live/prod
@@ -236,7 +246,7 @@ LeCore.getAcmeUrls(ACME_URL, function (err, urls) {
 		if(err.code=="ENOENT") {
 			// This means we have probably not registered. Register an account, then run the main function.
 			return registerNewAccount(main);
-			}
+		}
 		else throw err;
 	}
 	
@@ -249,9 +259,6 @@ LeCore.getAcmeUrls(ACME_URL, function (err, urls) {
 
 function main() {
 	
-	var checkDomain = process.argv[2];
-	var revoke = process.argv[3] == "--revoke"; // This is not implemented, but contributions are welcome! (call revoke-cert)
-	
 	if(checkDomain) {
 		
 		checkNginxCnf(checkDomain, function(err) {
@@ -261,11 +268,12 @@ function main() {
 			checkCertRenewal(checkDomain, function(err, renewNeeded) {
 				if(err) throw err;
 				
-				console.log("renewNeeded=" + renewNeeded);
+				log("renewNeeded=" + renewNeeded);
 				
 				if(renewNeeded) {
 					getCert(checkDomain, function(err, certs) {
 						if(err) throw err;
+						log(checkDomain + " renewed");
 						exit();
 					});
 				}
@@ -281,28 +289,28 @@ function main() {
 		fs.readdir(CERT_BASE_PATH, function listCerts(err, files) {
 			
 			if(files == undefined) {
-				console.log("Did not find any (certiface) files in " + CERT_BASE_PATH);
+				log("Did not find any (certiface) files in " + CERT_BASE_PATH, true);
 				process.exit();
 			}
 			
 			var leftToCheck = files.length;
 			var errors = [];
 			
-			if(leftToCheck == 0) console.log("No certificates found!")
+			if(leftToCheck == 0) log("No certificates found!", true)
 			else {
 				files.forEach(function checkFile(fileName) {
 					
 					// Remove the .crt part from file name
 					var checkDomain = fileName.substring(0, fileName.length-4);
 					
-					console.log("Checking " + checkDomain);
+					log("Checking " + checkDomain);
 					
 					// Make sure the nginx config is ok
 					checkNginxCnf(checkDomain, function(err) {
 						
 						if(err) {
-							console.log("Problem checking nginx configuration for " + checkDomain + "");
-							console.log(err.message);
+							log("Problem checking nginx configuration for " + checkDomain + "", true);
+							log(err.message, true);
 							errors.push(err);
 							doneCheck(checkDomain);
 						}
@@ -311,8 +319,8 @@ function main() {
 							checkCertRenewal(checkDomain, function(err, renewNeeded) {
 								
 								if(err) {
-									console.log("Problem checking if " + checkDomain + " need renewal");
-									console.log(err.message);
+									log("Problem checking if " + checkDomain + " need renewal", true);
+									log(err.message, true);
 									
 									errors.push(err);
 									doneCheck(checkDomain);
@@ -323,10 +331,13 @@ function main() {
 										getCert(checkDomain, function(err, certs) {
 											
 											if(err) {
-												console.log("Problem requesting certificate for " + checkDomain);
-												console.log(err.message);
+												log("Problem requesting certificate for " + checkDomain, true);
+												log(err.message, true);
 												
 												errors.push(err);
+											}
+											else {
+												log(checkDomain + " renewed", true);
 											}
 											
 											doneCheck(checkDomain);
@@ -344,7 +355,7 @@ function main() {
 			
 			function doneCheck(checkDomain) {
 				leftToCheck--;
-				console.log("Handled " + checkDomain + ". " + leftToCheck + " domains left to check.")
+				log("Handled " + checkDomain + ". " + leftToCheck + " domains left to check.")
 				
 				if(leftToCheck === 0) {
 					
@@ -354,12 +365,12 @@ function main() {
 							messages += errors[i].message + "\n";
 						}
 						throw new Error("One or more errors occured. Check the log file!\n" + messages);
-}
+					}
 					
 					exit();
 					
-}
-}
+				}
+			}
 			
 			
 		});
@@ -372,7 +383,7 @@ function exit() {
 	// Close the server
 	if(http_server_running) {
 		httpServer.close();
-		console.log("Closed HTTP server")
+		log("Closed HTTP server")
 	}
 }
 
@@ -397,7 +408,7 @@ function checkNginxCnf(checkDomain, callback) {
 				
 			}
 			else throw err;
-			}
+		}
 		
 		// Why doesn't multi-line regex work??
 		//var acmeChallenge = new RegExp("location \/\.well-known\/acme-challenge\/ {\s+proxy_pass http:\/\/127\.0\.0\.1:" + PORT + ";", "img");
@@ -405,10 +416,10 @@ function checkNginxCnf(checkDomain, callback) {
 		
 		var hasAcmeChallenge = nginxCnf.indexOf("location /.well-known/acme-challenge/") != -1 && nginxCnf.indexOf("proxy_pass http://127.0.0.1:" + PORT + ";") != -1;
 		
-		//console.log("hasAcmeChallenge=" + hasAcmeChallenge);
+		//log("hasAcmeChallenge=" + hasAcmeChallenge);
 		
 		if(hasAcmeChallenge) {
-			console.log("nginx config for " + checkDomain + " OK!");
+			log("nginx config for " + checkDomain + " OK!");
 			
 			if(callback) return callback(null);
 		}
@@ -436,42 +447,42 @@ function checkCertRenewal(checkDomain, callback) {
 		if (err) {
 			if(err.code=="ENOENT") {
 				
-				console.log(certPath + " does not exist! So it needs *renewal*");
+				log(certPath + " does not exist! So it needs *renewal*", true);
 				
 				return callback(null, true);
 				
 			}
 			else {
 				return callback(err);
+			}
 		}
-}
 		
 		// Check if it needs to be renewed
 		var ssl = require('ssl-utils');
 		ssl.checkCertificateExpiration(cert, function gotDate(err, expiry) {
 			//expiry is a Date instance
-			//console.log("expiry=" + expiry);
+			//log("expiry=" + expiry);
 			
 			if(err) {
 				callback(err);
-}
+			}
 			else {
-			var remainingTime = expiry.getTime() - Date.now();
-			//console.log("remainingTime=" + remainingTime);
-			
-			var remainingHours = Math.round(remainingTime / (1000 * 60 * 60));
-			//console.log(checkDomain + " remainingHours=" + remainingHours);
-			
-			console.log(remainingHours + " hours left until " + checkDomain + " expires");
-			
-			if(remainingHours < MAX_EXPIRE_HOURS) {
-				return callback(null, true);
+				var remainingTime = expiry.getTime() - Date.now();
+				//log("remainingTime=" + remainingTime);
+				
+				var remainingHours = Math.round(remainingTime / (1000 * 60 * 60));
+				//log(checkDomain + " remainingHours=" + remainingHours);
+				
+				log(remainingHours + " hours left until " + checkDomain + " expires");
+				
+				if(remainingHours < MAX_EXPIRE_HOURS) {
+					return callback(null, true);
 				}
-			else {
-				return callback(null, false);
+				else {
+					return callback(null, false);
 				}
-		}
-		
+			}
+			
 		});
 		
 	});
@@ -490,7 +501,7 @@ function registerNewAccount(callback) {
 		, accountPrivateKeyPem: ACCOUNT_KEY
 		, agreeToTerms: function agreeToTerms(tosUrl, done) {
 			
-			console.log("agreeToTerms: tosUrl=" + tosUrl);
+			log("agreeToTerms: tosUrl=" + tosUrl);
 			
 			// agree to the exact version of these terms
 			done(null, tosUrl);
@@ -500,13 +511,13 @@ function registerNewAccount(callback) {
 		
 		if(err) throw err;
 		
-		//console.log("regr=" + JSON.stringify(regr));
+		//log("regr=" + JSON.stringify(regr));
 		
 		// This data might become useful later ... So lets save it
 		fs.writeFile(accountJson, JSON.stringify(regr, null, 2), function accountJsonCreated(err) {
 			
 			if (err) throw err;
-			console.log(accountJson + " created");
+			log(accountJson + " created");
 			
 			if(callback) callback(null);
 			
@@ -525,13 +536,13 @@ function getCert(domain, callback) {
 	// Always create a new key (change the locks) when creating a new certificate
 	LeCore.leCrypto.generateRsaKeypair(2048, 65537, function (err, pems) {
 		if(err) throw err;
-		//console.log(pems);
+		//log(pems);
 		var domainPrivateKeyPem = pems.privateKeyPem;
 		
 		if(!http_server_running) { // Only start the server if it hasn't already started
 			http_server_running = true;
 			httpServer.listen(PORT, function () {
-				console.log('Started HTTP server on ', this.address());
+				log('Started HTTP server on ', this.address());
 				
 				getCertificate();
 			});
@@ -558,9 +569,9 @@ function getCert(domain, callback) {
 					else throw err;
 				}
 				else {
-					//console.log("certs=" + JSON.stringify(certs));
+					//log("certs=" + JSON.stringify(certs));
 					
-					console.log("Received certificate for ");
+					log("Received certificate for ... ");
 					
 					// Note: you should save certs to disk (or db)
 					certStore.set(domains[0], certs, function (err) {
@@ -570,10 +581,10 @@ function getCert(domain, callback) {
 							else throw err;
 						}
 						else {
-							console.log("Files saved");
+							log("Files saved");
 							if(callback) callback(null, certs);
 						}
-				});
+					});
 				}
 			}
 			);
@@ -584,5 +595,7 @@ function getCert(domain, callback) {
 	
 }
 
-
+function log(msg, important) {
+	if(logall || important) console.log(msg);
+}
 
