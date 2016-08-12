@@ -64,14 +64,15 @@ Once everything works, change the ACME url to the production url.
 
 ### Add to crontab
 
-crontab -u letsencrypt -e
+sudo crontab -e
 
-```45 7,19 * * *       node /tank/nodejs/letsencrypt.js```
+```45 7,19 * * *       sudo -u letsencrypt nodejs /tank/nodejs/letsencrypt/letsencrypt.js```
 
 Change the first value (minute 45), and hours 7,19 to a "random" values to somewhat ease the load on the ACME servers
 
 Add the -silent option if you do not want to get "spammed"
-```33 6,18 * * *       node /tank/nodejs/letsencrypt.js -silent```
+
+```33 6,18 * * *       sudo -u letsencrypt nodejs /tank/nodejs/letsencrypt/letsencrypt.js -silent```
 
 
 ## Nginx config guide
