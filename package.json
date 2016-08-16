@@ -1,6 +1,6 @@
 {
   "name": "letsencrypt",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "NodeJS script to manage letsencrypt certificates with Nginx",
   "main": "letsencrypt.js",
   "dependencies": {

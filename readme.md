@@ -139,5 +139,16 @@ And reload nginx again: ```sudo service nginx reload```
 To prove that you own yourdomain.com, letsencrypt makes a request to yourdomain.com/.well-known/acme-challenge/*
 So the script starts a HTTP server witch Nginx proxy to.
 
-The HTTPS certificates are valid for 90 days, so it's important that you setup crontab or someting else to run the script at regular intervals.
+The HTTPS certificates are valid for 90 days, so it's important that you setup crontab or something else to run the script at regular intervals.
 
+## Updating the script
+
+If you used git to clone the repo and made a local branch, you can smoothly update the script without it affecting your local details such as e-mail address etc.
+
+```
+git checkout master
+git pull origin master
+git branch -l
+git checkout name-of-your-local-branch
+git merge master -m "Updating"
+```
