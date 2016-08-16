@@ -215,7 +215,7 @@ function acmeResponder(req, res) {
 	
 	var key = req.url.slice(LeCore.acmeChallengePrefix.length);
 	
-	var hostname = req.headers["x-header"] || req.hostname;
+	var hostname = req.headers["x-host"] || req.hostname;
 	
 	challengeStore.get(hostname, key, function (err, val) {
 		res.end(val || 'Error');
