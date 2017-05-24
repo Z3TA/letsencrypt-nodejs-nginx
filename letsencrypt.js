@@ -37,8 +37,8 @@ var PORT = 8094; // Run the HTTP server on this port, witch need to be configure
 	
 */
 
-var CERT_BASE_PATH = "/tank/ssl/cert/"; // path to certification files (used by nginx)
-var KEYS_BASE_PATH = "/tank/ssl/keys/"; // path to crypto keys! (used by nginx)
+var CERT_BASE_PATH = "/path/to/cert/"; // path to certification files (used by nginx)
+var KEYS_BASE_PATH = "/path/to/keys/"; // path to crypto keys! (used by nginx)
 
 /*
 	
@@ -66,9 +66,9 @@ var KEYS_BASE_PATH = "/tank/ssl/keys/"; // path to crypto keys! (used by nginx)
 
 var MAX_EXPIRE_HOURS = 120; // Renew the certificate if it expires in less then 
 
-var ADMIN_EMAIL = "zeta@zetafiles.org"; // Change this to your own e-mail address!
+var ADMIN_EMAIL = "CHANGEME"; // Change this to your own e-mail address!
 
-var ACME_URL = "https://acme-v01.api.letsencrypt.org/directory"; // Change this to production after testing! 
+var ACME_URL = "https://acme-staging.api.letsencrypt.org/directory"; // Change this to production after testing! 
 /*
 	testing url= https://acme-staging.api.letsencrypt.org/directory
 	

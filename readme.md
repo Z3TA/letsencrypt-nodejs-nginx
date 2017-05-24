@@ -21,8 +21,8 @@ Update your domain's nginx config file:
 # Lets encrypt challange
 location /.well-known/acme-challenge/ {
   proxy_pass http://127.0.0.1:8094;
-  proxy_set_header Host $http_host;
-  proxy_set_header        X-Real-IP       $remote_addr;
+  proxy_set_header    Host          $http_host;
+  proxy_set_header    X-Real-IP     $remote_addr;
 }
 ```
 Change the port to whatever you want.
@@ -101,8 +101,8 @@ server {
   # Lets encrypt challange
   location /.well-known/acme-challenge/ {
     proxy_pass http://127.0.0.1:8094;
-    proxy_set_header Host $http_host;
-    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header    Host          $http_host;
+    proxy_set_header    X-Real-IP     $remote_addr;
   }
 
 }
