@@ -329,6 +329,7 @@ function main() {
 								else {
 									
 									if(renewNeeded) {
+										log("Needs renewal: " + checkDomain);
 										getCert(checkDomain, function(err, certs) {
 											
 											if(err) {
@@ -402,37 +403,75 @@ function checkNginxCnf(checkDomain, callback) {
 			
 			if(err.code=="ENOENT") {
 				
-				var err = new Error("No nginx configuration file for " + checkDomain + " exist! (" + nginxCfgPath + ")");
+				// Allow naked domain ...
+				var parts = checkDomain.match(/(.*)\.(.*)\.(.*)/);
+				
+				if(parts) {
+					if(parts.length == 4) {
+						var subdomain = parts[1];
+						var domain = parts[2];
+						var tld = parts[3];
+						
+						nginxCfgPath = "/etc/nginx/sites-enabled/" + domain + "." + tld;
+						
+						log("Unable to find nginx config file for " + checkDomain + " checking " + domain + "." + tld + " instead ...");
+						
+						fs.readFile(nginxCfgPath, "utf8", function readNginxCnfNaked(err, nginxCnf) {
+							if (err) {
+								if(err.code=="ENOENT") noNginxConfigFound();
+								else throw err;
+							}
+							else checkNginxCnfContent(nginxCnf);
+							
+						});
+						
+					}
+					else {
+						throw new Error("Expected parts.length=" + parts.length + " to be 4 ! parts=" + JSON.stringify(parts));
+					}
+				}
+				else noNginxConfigFound();
+				
+			}
+			else throw err;
+			
+		}
+		else checkNginxCnfContent(nginxCnf);
+		
+		function checkNginxCnfContent(nginxCnf) {
+			
+			// Why doesn't multi-line regex work??
+			//var acmeChallenge = new RegExp("location \/\.well-known\/acme-challenge\/ {\s+proxy_pass http:\/\/127\.0\.0\.1:" + PORT + ";", "img");
+			//var hasAcmeChallenge = nginxCnf.match(acmeChallenge);
+			
+			var hasAcmeChallenge = nginxCnf.indexOf("location /.well-known/acme-challenge/") != -1 && 
+			nginxCnf.indexOf("proxy_pass http://127.0.0.1:" + PORT + ";") != -1;
+			
+			var hasServerName = nginxCnf.match(new RegExp("server_name .*" + checkDomain));
+			
+			//log("hasAcmeChallenge=" + hasAcmeChallenge);
+			
+			if(hasAcmeChallenge && hasServerName) {
+				log("nginx config for " + checkDomain + " OK!");
+				
+				if(callback) return callback(null);
+			}
+			else {
+				
+				var err = new Error(checkDomain + " is not configured with /.well-known/acme-challenge");
 				
 				if(callback) return callback(err)
 				else throw err;
 				
 			}
-			else throw err;
 		}
 		
-		// Why doesn't multi-line regex work??
-		//var acmeChallenge = new RegExp("location \/\.well-known\/acme-challenge\/ {\s+proxy_pass http:\/\/127\.0\.0\.1:" + PORT + ";", "img");
-		//var hasAcmeChallenge = nginxCnf.match(acmeChallenge);
-		
-		var hasAcmeChallenge = nginxCnf.indexOf("location /.well-known/acme-challenge/") != -1 && nginxCnf.indexOf("proxy_pass http://127.0.0.1:" + PORT + ";") != -1;
-		
-		//log("hasAcmeChallenge=" + hasAcmeChallenge);
-		
-		if(hasAcmeChallenge) {
-			log("nginx config for " + checkDomain + " OK!");
-			
-			if(callback) return callback(null);
-		}
-		else {
-			
-			var err = new Error(checkDomain + " is not configured with /.well-known/acme-challenge");
+		function noNginxConfigFound() {
+			var err = new Error("No nginx configuration file for " + checkDomain + " exist! (" + nginxCfgPath + ")");
 			
 			if(callback) return callback(err)
 			else throw err;
-			
 		}
-		
 	});
 }
 
@@ -443,6 +482,10 @@ function checkCertRenewal(checkDomain, callback) {
 	if(callback == undefined) throw new Error("No callback defined in function argument");
 	
 	var certPath = CERT_BASE_PATH + checkDomain + ".crt";
+	
+	//log("Reading certPath=" + certPath + " ...");
+	
+	
 	fs.readFile(certPath, "utf8", function readCert(err, cert) {
 		
 		if (err) {
@@ -454,6 +497,7 @@ function checkCertRenewal(checkDomain, callback) {
 				
 			}
 			else {
+				log("Error reading certPath=" + certPath + " Error: " + err.message);
 				return callback(err);
 			}
 		}
@@ -465,6 +509,7 @@ function checkCertRenewal(checkDomain, callback) {
 			//log("expiry=" + expiry);
 			
 			if(err) {
+				log("Error checking expire date for domain=" + checkDomain + " Errror: " + err.message);
 				callback(err);
 			}
 			else {
@@ -534,6 +579,8 @@ function getCert(domain, callback) {
 	
 	var domains = [domain]; // Needs to be an array
 	
+	log("Getting certificate for domain=" + domain);
+	
 	// Always create a new key (change the locks) when creating a new certificate
 	LeCore.leCrypto.generateRsaKeypair(2048, 65537, function (err, pems) {
 		if(err) throw err;
@@ -543,13 +590,15 @@ function getCert(domain, callback) {
 		if(!http_server_running) { // Only start the server if it hasn't already started
 			http_server_running = true;
 			httpServer.listen(PORT, function () {
-				log('Started HTTP server on ', this.address());
+				log('Started HTTP server on ' + this.address());
 				
 				getCertificate();
 			});
 		}
-		else getCertificate();
-		
+		else {
+			log("HTTP server already running");
+			getCertificate();
+		}
 		
 		function getCertificate() {
 			LeCore.getCertificate(
@@ -566,6 +615,7 @@ function getCert(domain, callback) {
 			, function (err, certs) {
 				
 				if(err) {
+					log("Error getting certificate for domain=" + domain + " Error: " + err.message);
 					if(callback) callback(err)
 					else throw err;
 				}
