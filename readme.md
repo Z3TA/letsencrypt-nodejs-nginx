@@ -137,7 +137,7 @@ And reload nginx again: ```sudo service nginx reload```
 * Checks if the certificate file exists and if it's about to expire, then requests a new certificate
 
 To prove that you own yourdomain.com, letsencrypt makes a request to yourdomain.com/.well-known/acme-challenge/*
-So the script starts a HTTP server witch Nginx proxy to.
+So the script starts a HTTP server which Nginx proxy to.
 
 The HTTPS certificates are valid for 90 days, so it's important that you setup crontab or something else to run the script at regular intervals.
 
