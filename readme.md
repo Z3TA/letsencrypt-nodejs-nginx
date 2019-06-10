@@ -1,5 +1,10 @@
-# Manage letsencrypt certificates for Nginx
+## DEPRECATION WARNING! No longer maintained. As of 2018 the capabilites of Certbot now covers the functionality of this script.
+## So you probably want to use Certbot instead.
 
+
+
+
+# Manage letsencrypt certificates for Nginx
 
 ## Setup
 
